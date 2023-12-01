@@ -1,0 +1,172 @@
+# Update and upgrade the Linux Distro (Ubuntu)
+apt update
+apt upgrade
+
+# Umuman olganda php Ubuntuda default holatda keladi va buni bilish uchun quyidagi comandani bersak bo`ldi
+apt search php
+
+# Ubuntuda php uchun alohida repositoriya bor va bu repositoriya web serverga daxldor bo`lgan narsalarni support qiladi
+# va bu php repositoriyaning avzallik tomoni shundaki, agar php da yangilik bo`ladigon bo`lsa, shuni yetkazib berib turadi
+# shuning uchun o`sha repositoriyani qo`shib olgan maqbul bo`ladi quyidagi comanda orqali
+add-apt-repository ppa:ondrej/php 
+
+# Va kiritilgan o`zgarishlani olish uchun update qilib yuboramiz
+apt update
+   
+# Umuman olganda php ni 2 xil rejimda ishlash uchun moslashgan 
+	1 php-fpm (nginx bilan ishliydi va stream bilan php ga uzatadi va php qandaydir ishlarni qilib qaytib nginx ga beradi), 
+	2 php-cli (terminal rejimida ishliydi)
+
+# Install PHP
+apt install php8.3 
+
+# PHP o`rnatilgandan keyin php-modularni o`rnatish kerak bo`ladi va ular qo`ydagilar
+Core:          	The core module includes essential functionalities of PHP.
+ctype:         	Functions for character type checking.
+curl:          	Allows PHP to make requests using the c.
+date: 		Date and time manipulation functions.
+dom: 		DOM (Document Object Model) manipulation for XML documents.
+fileinfo: 	Provides functions to retrieve information about files.
+filter: 	Validation and filtering functions.
+ftp: 		Functions for interacting with FTP servers.
+gd: 		Graphics Draw (GD) extension for image processing.
+gmagick: 	Asosan rasmlar bilan ishliydigon utilita
+hash: 		Hash functions for data integrity and security.
+iconv: 		Character encoding conversion.
+imagick: 	PHP extension to create, modify, and obtain information about images.
+imap: 		IMAP functions for email manipulation.
+json: 		Provides functions for encoding and decoding JSON data.
+libxml: 	Library for XML and HTML parsing.
+mbstring: 	Multibyte string functions for working with multibyte character encodings.
+mcrypt: 	Deprecated encryption functions.
+memcache: 	Provides functions for interfacing with Memcached.
+memcached: 	Another extension for interfacing with Memcached.
+mysqli: 	MySQL Improved extension for MySQL database interactions.
+mysqlnd: 	Native Driver for MySQL.
+openssl: 	Functions for working with OpenSSL for encryption, decryption, and secure connections.
+pcre: 		Perl Compatible Regular Expressions support.
+PDO: 		PHP Data Objects, a database access layer providing a uniform method of access to multiple databases.
+pdo_sqlite: 	PDO driver for SQLite.
+Phar: 		Extension for reading and creating Phar archives.
+posix: 		Functions for interacting with the POSIX system.
+readline: 	GNU Readline functions for command-line input.
+redis: 		Extension for interfacing with Redis key-value store.
+Reflection: 	Allows introspection of classes, interfaces, functions, methods, and properties.
+session: 	Session handling functions.
+SimpleXML: 	A simpler way to work with XML in PHP.
+soap: 		Enables communication with web services using the Simple Object Access Protocol (SOAP).
+sodium: 	Cryptographic functions using the Libsodium library.
+SPL: 		Standard PHP Library provides a set of interfaces and classes for common data structures.
+sqlite3: 	SQLite 3 database driver.
+standard: 	Core PHP functions.
+tokenizer: 	Functions to parse PHP source code.
+xml: 		Functions for parsing XML.
+xmlreader: 	XMLReader extension for reading XML documents.
+xmlwriter: 	XMLWriter extension for creating XML documents.
+Zend OPcache: 	Improves PHP performance by storing precompiled script bytecode in shared memory.
+zip: 		Functions to create and read ZIP archives.
+zlib: 		Compression functions using the zlib library.
+common: 	tashqi modullarni chaqirib oladigon block hisoblanadi
+cli:		terminalda ishlash uchun kerak bo`ladi
+bz2:
+bcmath: 	asosan matematik formulalar uchun kerak bo`ladi
+dev: 		php uchun custom modullar yaratganda c tilida phpga murojiat qilganda kerak bo`ladi
+http: 	
+intl: 			
+
+Zend Modules:
+Zend OPcache: 	As mentioned earlier, it improves PHP performance by caching precompiled script bytecode.
+
+# Shulardan ayrimlarini bizning maqsadimizga tegishli ravishda keragligini o`rnatamiz va o`rnatishning 2 xil turi bor 
+	1 apt install php8.3-fpm php8.3-mysql php8.3-sqlite3 ....
+	2 apt install php8.3-{fpm,mysql,sqlite3...}
+apt install php8.3-{fpm,cli,bz2,bcmath,common,curl,dev,gmagick,http,intl,mbstring,memcache,memcached,opcache,raphf,sqlite3,xml,yaml,mysql,gd,soap}
+
+# PHP configurationlari asosan /etc/php/8.1/ da saqlanadi 
+# fpm bu nginx bilan ishlashda kerak bo`ladi, 
+# /etc/php/8.1/fpm ga kirib php.ini ni sozlashni boshlimiz va bu yerda web serverda inputlarga malumot yuklashda cheklovlarni sozlaymiz
+post_max_size =8M - o`zgartiramiz 128M ga
+upload_max_size =8M - o`zgartiramiz 128M ga  
+
+# /etc/php/8.1/fpm/pool.d
+# Shu erda www.conf bolib asosan u eshtish operative xotiradan qancha joyni egallashi va ho kazolarni sozlaydi
+
+listen = 127.0.0.1:9000; - shuni /etc/nginx/sites-avalable/default ga kirib podefault turgan qimini commentdan chiqarib fastcg ni sozlaymiz
+			   server {
+				....
+				
+				location ~ \.php$ {
+					inlude snippets/fastcgi-php.conf;
+					.....
+					fastcgi_pass 127.0.0.1:9000;
+				}
+			   }
+
+pm.max_children = 4096
+.....
+pm.start_servers = 8
+.....
+pm.min_spare_servers = 5
+.....
+pm.max_spare_servers = 30
+....
+pm.process_idle_timeout = 10s
+#Save qilib /etc/init.d/php8.1-fpm restart beramiz
+
+# LOAD BALANCE - bitta domain uchun birnechta fpm lar ishlay boshliydi 
+# yane /etc/php/8.1/fpm/pool.d/ - shuerga bir nechta file lar bo`ladi va shu filelarni /etc/nginx/nginx.conf da upstream qo`shib qo`yamiz
+# Buning uchun cp /etc/php/8.1/fpm/pool.d/www.conf /etc/php/8.1/fpm/pool.d/www-second.conf faqat buni listen ni boshqa portga qo`yamiz 
+
+cp /etc/php/8.1/fpm/pool.d/www.conf /etc/php/8.1/fpm/pool.d/www-second.conf
+---------------------------------------------------------------------------
+nano /etc/php/8.1/fpm/pool.d/www-second.conf
+--------------------------------------------
+listen = 127.0.0.1:9001; 
+------------------------
+
+# va shuni /etc/nginx/nginx.conf ga kirib upstream qo`shamiz
+
+nano /etc/nginx/nginx.conf      					va /etc/nginx/sites-avalable/default ga kirib 
+--------------------------						---------------------------------------------
+http {    								server {
+	....									....
+
+										location ~ \.php$ {
+	# load balance									include snippets/fastcgi-php.conf;
+	upstream php-fpm {								.....	
+		server 127.0.0.1:9000 max_fails=3 fail_timeout=20;			fastcgi_pass php-fpm 			- manashu joyda load balancer ishga tushib ketadi			
+		server 127.0.0.1:9001 max_fails=3 fail_timeout=30;		}
+	}								}
+}
+
+# Va load balancer ishlavotganini tekshirish uchun quyidagi komandani beramiz
+lsof | grep 9000 
+lsof | grep 9001
+---------------			       --------   ---     ----		    -----       ---        ----------------------------
+php-fpm8. 18359                        www-data   10u     IPv4              48391       0t0        TCP localhost:9000 (LISTEN) | - shunaqa chiqishi kerak
+---------------			       --------   ---     ----  	    -----	---	   ----------------------------
+
+# Xafsizlik uchun va kiritilgan upload size lar uchun /etc/nginx/nginx.conf ga o`zgartirishlar kiritiladi
+nano /etc/nginx/nginx.conf
+--------------------------
+http {
+	server_token off;  			- bu browser da bizi server malumotlarni o`chirish to`g`risidagi command
+	more_clear_headers Server;		- bu headerga server to`g`risidagi malumotlarni filterlaydi
+	server_names_hash_bucket_size 128;	- bu qachon server nomi ko`p charachterli bo`lganda, asosan subdomain bo`lganda
+	client_max_body_size 128M;		- biz /etc/php/8.1/fpm/php.ini ichida kiritilgan post_max_size = 128M va upload_max_size = 128M ga asosan qo`yiladi
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

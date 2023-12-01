@@ -1,0 +1,80 @@
+# Mysql installation
+apt update
+apt install mysql-server
+
+# Mysql config file lari /etc/mysql/ ichsida bo`ladi
+# Va /etc/mysql/conf.d/mysqldump.cnf ichiga loglarni yozmasligi uchun disable_log_bin qo`yamiz - bu bufferni har qanday musorlardan tozalaydi
+nano /etc/mysql/conf.d/mysqldump.cnf
+---------------
+disable_log_bin
+---------------
+/etc/init.d/mysql restart
+
+# Mysql ichga kirib uning @@sql_mode ichidan 'ONLY_FULL_GROUP_BY' deganini olib tashliymiz, va qachon select * from smth where sm = sm da group by ishlamiydi 
+mysql
+mysql> SELECT @@sql_mode;  
++-----------------------------------------------------------------------------------------------------------------------+
+| @@sql_mode                                                                                                            |
++-----------------------------------------------------------------------------------------------------------------------+
+| ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION |
++-----------------------------------------------------------------------------------------------------------------------+
+
+mysql> REPLACE(@@sql_mode, "ONLY_FULL_GROUP_BY,", "")
+mysql> SELECT @@sql_mode;  
++-----------------------------------------------------------------------------------------------------------------------+
+| @@sql_mode                                                                                                            |
++-----------------------------------------------------------------------------------------------------------------------+
+| STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION    		|
++-----------------------------------------------------------------------------------------------------------------------+
+
+# Yuqorida olib tashlagandan keyin qolganini olib 
+# yane STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION /etc/mysql/mysql.conf.d/mysqld.cnf ni oxiriga quyidagicha qo`yamiz 
+nano /etc/mysql/mysql.conf.d/mysqld.cnf
+------------------------------
+qsl_mode = "STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+
+# Endi phpmyadmin ni install qilib uni ishga tushuramiz
+apt update
+apt install phpmyadmin
+----------------------
+# agar user va password ni unutib qo`ysak /etc/dbconfig-common/phpmyadmin.conf shu erdan olamiz
+nano /etc/dbconfig-common/phpmyadmin.conf
+------------------------+
+dbc_dbuser='phpmyadmin'	|
+dbc_dbpass='root'	|
+------------------------+
+
+# Mysql dan privelege beramiz shu dbc_dbuser='phpmyadmin' uchun va u qoyidagicha amalga oshiriladi
+mysql
+mysql> GRANT ALL PRIVILEGES ON *.* TO 'phpmyadmin'@'localhost' WITH GRANT OPTION;
+mysql> FLUSH PRIVILENGES;
+mysql> exit;
+/etc/init.d/mysql restart
+
+# Va bunga kirishimiz uchun web serverdan nginx ni sozlaymiz
+nano /etc/nginx/sites-available/default
+-------------------------------------
+server {
+	.....
+	location /phpmyadmin {
+		root /usr/share/;
+		index index.php index.html index.htm;
+		
+		location ~ ^/phpmyadmin/(.+\php)$ {
+			try_files $uri =404;
+			root /usr/share/;
+			fastcgi_pass php-fpm;
+			fastcgi_index index.php;
+			fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+			include /etc/nginx/fastcgi_params;	
+		}
+	}
+
+	location ~* ^/phpmyadmin/(.+\(jpg|jpeg|gif|png|css|js|ico|html|xml|text))$ {
+		root /usr/share/;
+	}
+}
+------------------------------------
+/etc/init.d/nginx restart
+
+

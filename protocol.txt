@@ -1,0 +1,59 @@
+HTTP (Hypertext Transfer Protocol): 			Used for transmitting hypertext over the Internet, often used for web browsing.
+
+HTTPS (Hypertext Transfer Protocol Secure): 		An extension of HTTP with added security using SSL/TLS encryption.
+
+FTP (File Transfer Protocol): 				Used for transferring files between computers on a network.
+
+SMTP (Simple Mail Transfer Protocol): 			Used for sending emails between servers.
+
+POP3 (Post Office Protocol version 3): 			A protocol for retrieving emails from a server.
+
+IMAP (Internet Message Access Protocol): 		A protocol for accessing and managing emails on a mail server.
+
+TCP (Transmission Control Protocol): 			A connection-oriented protocol that provides reliable, ordered, and error-checked delivery of data.
+
+UDP (User Datagram Protocol): 				A connectionless protocol that provides faster, but less reliable, data transmission.
+
+IP (Internet Protocol): 				The fundamental protocol for sending and receiving data on the Internet.
+
+DNS (Domain Name System): 				Resolves domain names to IP addresses.
+
+DHCP (Dynamic Host Configuration Protocol): 		Assigns IP addresses dynamically to devices on a network.
+
+SNMP (Simple Network Management Protocol): 		Used for network management and monitoring.
+	
+SSH (Secure Shell): 					Provides secure access to a remote server over a network.
+
+Telnet: 						A protocol for remotely accessing and managing devices over a network.
+
+ICMP (Internet Control Message Protocol): 		Used for error reporting and diagnostics.
+
+ARP (Address Resolution Protocol): 			Maps IP addresses to MAC addresses on a local network.
+
+RDP (Remote Desktop Protocol): 				Used for remote desktop connections.
+
+SFTP (SSH File Transfer Protocol): 			A secure alternative to FTP, using the SSH protocol.
+
+LDAP (Lightweight Directory Access Protocol): 		A protocol for accessing and maintaining directory information services.
+
+NTP (Network Time Protocol): 				Synchronizes the clocks of computers on a network.
+
+HTTPS (HyperText Transfer Protocol Secure): 		Secure version of HTTP, using SSL/TLS to encrypt data.
+
+RTSP (Real-Time Streaming Protocol): 			Used for controlling the delivery of streaming media.
+
+XMPP (Extensible Messaging and Presence Protocol): 	An open standard for instant messaging.
+
+BGP (Border Gateway Protocol): 				A routing protocol used to exchange routing and reachability information between autonomous systems on the Internet.
+
+CoAP (Constrained Application Protocol): 		Designed for resource-constrained devices and networks in the Internet of Things (IoT).
+
+WebSockets: 						A communication protocol that provides full-duplex communication channels over a single, long-lived connection.
+
+MQTT (Message Queuing Telemetry Transport): 		A lightweight messaging protocol for small sensors and mobile devices.
+
+BitTorrent Protocol: 					Used for peer-to-peer file sharing.
+
+SMTPS (SMTP Secure): 					A secure version of SMTP that uses SSL/TLS encryption.
+
+Kerberos: 						A network authentication protocol.

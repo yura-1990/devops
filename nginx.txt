@@ -1,0 +1,247 @@
+# NGINX o`rnatish bilan /var/www/ folderlar yaratiladi
+sudo apt update
+sudo apt upgrate
+
+# NGINX ni o`rnatish va uning boshlangiz configuration larni sozlash
+sudo apt install nginx nginx-extras 
+
+# FireWall yoqilgan yoki yo`qligini tekshirish mumkin
+ufw status 
+
+# NGINX ni fireWall ga qo`shilgan yoki yoqligini ko`rish mumkin
+ufw app list
+
+# agar qoshilmagan bo`lsa u holda pastdagi comanda qo`shib qo`yadi 
+ufq allow "Nginx HTTP" 
+
+# NGINX ni yoqilgan yoki yoqligi yoki yoqish, o`chirish restart berish uchun 2 xil comandalar bor
+systemctl status nginx
+/etc/init.d/nginx status
+------------------------
+systemctl start nginx
+/etc/init.d/nginx start
+------------------------
+systemctl stop nginx
+/etc/init.d/nginx stop
+------------------------
+systemctl restart nginx
+/etc/init.d/nginx restart
+
+# Va browserga borib ipmizga murojiat etamiz va nginx chiqishi kerak boladi
+
+# ll - comandasi ro`yxatni barcha permissionlariyu ownership larigacha chiqarib beradi
+
+# whoami - qaysi userda ishlayotganligini chiqarib beradi
+
+# Endi /var/www/ shu erga yangi folder ochamiz folder nomi domain nomi bilan bolishi tafsiya etiladi
+mkdir /var/www/domain.name.uz
+
+# Endi /etc/nginx/sites-avalable ichiga domain.name.uz.conf degan file yaratamiz 
+nano /etc/nginx/sites-avalable/domain.name.uz.conf
+server {
+	listen 80;
+	server_name domain.name.uz
+	index index.php index.html
+	root /var/www/domain.name.uz
+
+	location / {
+		try_files $uri $uri/ =404
+	}
+}
+
+# Va hammasini to`g`ri o`rnatilganligini bilish uchun quyidagi komadani beramiz -t bu test va hammasi yaxshi bolsa ok chiqadi bolmasa xatoni chiqaradi
+nginx -t 
+
+# Simlink qilamiz bu serverdagi bizzi projectimiz har doim ishlashni ta`minlab beradi yane yoqib qoldiramiz server o`chib yonganda automatik ishga tushadi
+ln -sf /etc/nginx/sites-avalable/domain.name.uz /etc/nginx/sites-enabled/
+
+# cat /etc/passwd - bu yerda barcha user account infolarini saqlaydi (username:x:UID:GID:comment:home_directory:login_shell)
+								               x /etc/shadow da passwordlarni hashlaganini ko`rsatadi
+									       UID User ID. A unique numerical identifier for the user
+									       GID Group ID. The primary group ID of the user.
+									       comment user malumotlarini saqlaydi asosan user ismi sharifi
+									       home_directory path to home dir	
+									       login_shell userni qaysi terminaldan ekanligi
+								     (john:x:1000:1000:John Doe:/home/john:/bin/bash)
+
+# Ownershipni o`zgartiramiz yane file va directoriga ownership qoyamiz buning uchun quyidagi commandani beramiz -R (recursive) www-data:www-data yane user:group								       
+chown -R www-data:www-data domain.name.uz
+
+# Va permission beramiz user, group va other bunda -R (recursive) 7- read (4) + write (2) + execute; 5- read (4) + execute (1); 5- read (4) + execute (1)
+chmod -R 755 domain.name.uz
+
+# cat /etc/passwd | grep www-data deganda bizaga shu userni barcha malumotlarini chiqarib beradi 
+(www-data:x:1000:1000:www-data:/var/www:/bin/bash)
+
+# Va servernni nginx ni ochib yoqamiz
+systemctl stop nginx
+/etc/init.d/nginx stop
+------------------------
+systemctl start nginx
+/etc/init.d/nginx start
+------------------------
+yoki
+------------------------
+systemctl restart nginx
+/etc/init.d/nginx restart
+
+# nginx file structurasi asosan directive va context dan tahskil topadi
+directive http {
+	directive server {
+		directive location / {
+			
+		}
+		directive location /login {
+
+		}
+	}
+	
+	directive upstream backend { 	# bu asosan load-balansing uchun ishlay boshliydi
+		server proxi;
+		server backend1.example.com weight=3; # bu asosan ko`p request lar oladi	
+		server backend2.example.com;          # bu backend1.example.com ishlash darajasi tushganda ishga tushadi  
+		server backend2.example.com backup;
+		
+	}
+
+	directive server {
+        	directive location / {
+            		proxy_pass http://backend;
+        	}
+    	}
+	
+
+}
+
+types {
+	mime ext; # bu asosan headerda beriladigon narsalar hisoblanadi misol uchun 
+		  # application/json; image/gif ...
+
+	
+}
+
+# commands:
+htop - bu dispecherni ko`rsatadi 
+
+# nginx.conf ichini koramiz
+user www-data; - ownership
+worker_processes auto; - bu qanchalik ishlashi server holatiga qarab 
+pid /run/nginx.pid;    - bu nginx ni ishga tushurish uchun comanda
+include /etc/nginx/modules-enabled/*.conf; - bu harxil modullar configi bolib uni ichidagi bittasini oladigan
+                                             bolsak geoip biz evropa, azia uchun alohida config yozish mumkin boladi
+worker_rlimit_nofile 20000 - agar event ichidagi work_connections 20000 ga ozgartirganda qoyilishi kerak boladi
+events{
+	worker_connections 768; - bir vaqtni ichida nechta foydalanuvchilar kiraolishini korsatadi,
+				- buni o`zgartrish mumkin misol uchun 20 000 deb qoyilsa ham bolai
+	# multi_accept on;      - agar buni commentdan chiqarsak bu go`yo async ga o`xshab ishliydi,
+				- bunda foydalanuvchilar sonida async bolib ishliydi.
+}
+
+http{
+	send_files on; - bu static filelarni yuborishda kerak boladi
+} 
+
+
+
+# commands:
+top -u www-data - top bu asosan system monitoring tool resources realtime performence 
+		- hozirda qancha resources sarflanayotganini bildiradi
+		- va -u bu filter username degani va bundan keyin username kelishi kerak 
+		- va www-data nginx configi uchun berilgan username hisoblanadi shunga 
+		- bu comanda shu user uchun qancha resources sarflanayotganini korsatadi
+
+cat /proc/1234/limits - /proc/PID/limits bunda PID (Process IDentifier) linux systemida ozining 
+		      - process/dir process IDentifier/limits - file va bu file [Max open files, Max locked memory ...] shunaqa malumotlarni saqliydi
+
+server {
+	listen 80; 80 bu port, aslida 0.0.0.0:80 hisoblanadi agar hohlasak 127.0.0.1:8080 qoysak shuni ozini shu domain uchun o`qiydi
+	server_name domain.name.uz *.domaim.name.uz - bu sundomain uchun ham ishlatsa boladi
+	
+	error_log off; - nginx ichida boladigon error larni filiga yozishni ochirib qo`yish hisoblanadi
+		       - yoki buni boshqa joyga ko`chirish yohud boshqa adressda yozgin deb qoysak ham boladi
+		       - va buni access_log misolida ko`rishimiz mumkin
+	access_log /var/nginx/domain.name.uz_access.log; 
+
+	location / { 			     # location / - domain.name.uz
+		try_files $uri $uri/ =404; - # try_files $uri - domain.name.uz/path if path is not found then 404
+	}
+
+	location / {
+		proxy_set_header Orign $http_origin;
+		proxy_set_header Host $http_host;
+		proxy_pass https://another.domain.name.com; # o`zimizzi domainimizga murojiat etganda shu domainga otib ketadi
+	}
+
+	location /path {
+		add_header Content-type text/plain; # domain.name.uz/path murojiat qilganda text korinishida beradi
+		return 200 $uri                     # $uri orniga "salom dunyo" yozsa ham bo`ladi va shuni site-modules ichida header ga qarab topib uni text qilib chiqarib ber adi
+	}
+
+	location ~* \.php$ {                        # hohlagan file va .php extli bolsin degan va domain.name.uz/hohlagan.php ga murojiat qilganda javob 
+		add_header Content-type text/plain; 
+		return 200 $uri    		    # $uri o`rniga hohlagan narsa yozish mumkin
+	}
+	
+	location ~ ^/(?<filename>.*)$ { 	    # bu erda har qanaqa file har qanaqa extention bilan () - guruhlash regEX 
+		add_header Content-type text/plain; 
+		return 200 "bu $filename"	    # bu yerga hohlagan narsa yozish mumkin
+	}
+
+	location ~ ^/foldername/(?<filename>.*)$ {  # agar domain.name.uz/foldername/test.mp4 - Siz film kormoqchimisiz degan so`z chiqarib beradi
+		add_header Content-type text/plain; 
+
+		set $var "";
+		
+		if($filename = 'test.mp4'){
+			set $var "film kormoqchimisiz";
+		}
+		if($filename = 'test.mp3'){
+			set $var "qoshiq tignlamoqchisiz";
+		}
+		
+		return 200 "Siz $var";
+	}
+
+	location ~ ^/foldername/(?<filename>.*)$ {  # agar domain.name.uz/foldername/test.mp4 - murojiat qilganda severni boshqa papkasini ichiga ketadi sorov
+		alias /media/cdrom/$filename; 	    # alias shu adress orqali chiqarib beradi test.mp4 
+		add_header Content-type text/plain; 
+		return 200 "Siz $filename";
+	}
+}
+
+# command
+nginx -t - albatta tekshirish kerak boladi hammasi joyidami yoki yoqmi va nginx ni restart berib yuborish kerak boladi
+/etc/init.d/nginx restart - yoki systemctl restart nginx
+tail /var/nginx/domain.name.uz_access.log; - tail [options] [file], asosan biror bir filni oxirgi qatorlarini korsatish uchun
+					   - asosan error larni ko`rish uchun ishlidi [options] bu erga necha qatorni ko`rsatishni kiritsa boladi
+					   - [options] -n N or --lines=N yane tail -n 10 filename oxirgi 10 ta qatorni korsatadi yoki
+					   - -c N or --bytes=N yane tail -c 1024 filename oxirgi 1024 li bytes ni ko`rsatadi
+head /var/nginx/domain.name.uz_access.log; - bu tail ga teskari yane boshidagi qatorlarni ko`rsatadi
+
+# Linux commands
+
+# Papka va uning ichidagilarni o`chirish
+rm -r path/to/folder - -r recursive bolib manashu folder ichidagi bilan ham o`chiradi va voxtinchaga o`chirib turadi
+rm -ri path/to/folder - -i bu asosan bizdan so`raydi qaysi file va qaysi papkani o`chirishni recurcive holatda
+
+# File va papkalarni nomini o`zgartrish
+------ Rename a file in the current directory ------
+mv file.txt newfile.txt
+mv /path/to/oldfile.txt /path/to/newfile.txt
+
+------ Rename a folder in the current directory ------
+mv old_foldername new_foldername
+mv /path/to/oldfolder/ /path/to/newfolder/
+
+-----To Move and Rename-----
+mv old_path/old_filename new_path/new_filename
+mv /home/user/documents/file.txt /var/www/html/newfile.txt
+
+
+
+
+
+
+
+
+
