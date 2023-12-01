@@ -1,0 +1,37 @@
+# Servislar Linux Ubuntuda 
+# Masalan tg bot yaratmoqchimiz va buni har doim phonoviy rejimda ishlab turushi kerak bo`ladi
+# crontab da ishlatsa ham bo`ladi
+# php file yaratamiz va uni nano /var/www/service.php yaratimmiz va uni har qanchada ishlatmoqchimiz 
+
+$ crontab -e
+............................................
+............................................
+............................................
+*/1 * * * /usr/bin/php8.1 /var/www/service.php - 1 minutda ishga solamiz
+
+-------------------------------------------------------------------------------------------
+----- va bu ham bo`ladi lekin uni huddi   .service ko`rinishida ishga tushuramiz ----------
+----- shunga systemaga yangi service yaratamiz va systemada yangi file yaratamiz ----------
+-------------------------------------------------------------------------------------------
+
+nano /etc/systemd/system/custome.service
+---------------------------------------------------
+[Unit]
+Description=MyCustomService
+After=network.service
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/usr/bin/php8.1 /var/www/service.php
+
+[Install]
+WantedBy=multi-user.target
+----------------------------------------------------
+systemctl daemon-reload
+systemctl start custome
+systemctl status custome
+
+watch cat /var/www/service.php - va natijani ko`rishimiz mumkin

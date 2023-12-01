@@ -1,0 +1,12 @@
+# Linuxda utilitalar asosan ishimizni yegilashda qo`llaniladigon servislar hisoblanadi 
+# va bularni biz malumot olish uchun va qanadaydir nagruzka va ho kazolarni bilib ularni 
+# bartaraf etish yo`llarini qilishimiz uchun kerak bo`ladi va bu utilitalar qo`ydagilar hisoblanadi.
+
+apt update 
+apt inatall htop
+apt inatall net-tools
+apt install mytop
+apt inatall iftop
+apt install iotop
+
+
